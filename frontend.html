@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wine Quality API – Tester</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0d0d0f;
+      --surface: #16161a;
+      --surface2: #1e1e24;
+      --border: #2a2a35;
+      --accent: #c8a96e;
+      --accent2: #7c5cbf;
+      --good: #4ade80;
+      --bad: #f87171;
+      --text: #e8e6e0;
+      --muted: #6b6980;
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      min-height: 100vh;
+      padding: 0 0 60px;
+    }
+
+    /* ── header ── */
+    header {
+      background: linear-gradient(135deg, #1a1018 0%, #0d1520 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 28px 40px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .logo {
+      width: 46px; height: 46px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 10px;
+      display: grid; place-items: center;
+      font-size: 22px;
+    }
+    header h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px; }
+    header span { font-size: 0.82rem; color: var(--muted); font-weight: 400; display: block; margin-top: 2px; }
+    .base-url-bar {
+      margin-left: auto;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .base-url-bar label { font-size: 0.75rem; color: var(--muted); }
+    .base-url-bar input {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.82rem;
+      padding: 7px 12px;
+      width: 230px;
+      outline: none;
+    }
+    .base-url-bar input:focus { border-color: var(--accent); }
+
+    /* ── layout ── */
+    .container { max-width: 1100px; margin: 0 auto; padding: 40px 40px 0; }
+
+    .tabs {
+      display: flex; gap: 4px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 36px;
+    }
+    .tab {
+      padding: 10px 22px;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.88rem; font-weight: 600;
+      background: none; border: none; border-radius: 8px 8px 0 0;
+      color: var(--muted); cursor: pointer;
+      transition: all .2s;
+      position: relative; bottom: -1px;
+    }
+    .tab.active {
+      background: var(--surface);
+      color: var(--accent);
+      border: 1px solid var(--border);
+      border-bottom-color: var(--surface);
+    }
+    .tab:not(.active):hover { color: var(--text); }
+
+    .panel { display: none; animation: fadeIn .25s ease; }
+    .panel.active { display: block; }
+
+    @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+
+    /* ── cards ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      margin-bottom: 24px;
+    }
+    .card-title {
+      font-size: 0.75rem; font-weight: 700;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      color: var(--accent); margin-bottom: 20px;
+    }
+
+    /* ── grid inputs ── */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label { font-size: 0.75rem; color: var(--muted); font-weight: 600; }
+    .field input, .field select {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.85rem;
+      padding: 9px 12px;
+      outline: none;
+      transition: border .15s;
+    }
+    .field input:focus, .field select:focus { border-color: var(--accent); }
+    .field select option { background: var(--surface2); }
+
+    /* ── features checkboxes ── */
+    .features-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 8px; margin-top: 4px;
+    }
+    .feat-check {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 8px 12px; cursor: pointer;
+      font-size: 0.78rem; transition: all .15s;
+    }
+    .feat-check:hover { border-color: var(--accent2); }
+    .feat-check input[type=checkbox] { accent-color: var(--accent); width: 14px; height: 14px; }
+    .feat-check.checked { border-color: var(--accent); background: #1f1a0f; }
+
+    /* ── buttons ── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 11px 26px; border-radius: 9px; border: none;
+      font-family: 'Syne', sans-serif; font-size: 0.9rem; font-weight: 700;
+      cursor: pointer; transition: all .2s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #b8924a);
+      color: #0d0d0f;
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(200,169,110,.3); }
+    .btn-primary:active { transform: none; }
+    .btn-secondary {
+      background: var(--surface2); color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { border-color: var(--accent2); }
+    .btn-row { display: flex; gap: 12px; margin-top: 24px; align-items: center; }
+
+    /* ── response box ── */
+    .response-area {
+      margin-top: 28px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .response-header {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 18px; border-bottom: 1px solid var(--border);
+      font-size: 0.75rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+    }
+    .status-badge {
+      padding: 3px 10px; border-radius: 99px; font-size: 0.72rem; font-weight: 700;
+    }
+    .status-ok   { background: #0f3020; color: var(--good); }
+    .status-err  { background: #2d0f0f; color: var(--bad); }
+    .status-idle { background: var(--surface); color: var(--muted); }
+
+    .response-body {
+      padding: 18px;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.82rem;
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 380px;
+      overflow-y: auto;
+      color: #c8e6c9;
+      line-height: 1.65;
+    }
+    .response-body.error { color: #ffcdd2; }
+
+    /* ── prediction result highlight ── */
+    .pred-result {
+      display: flex; align-items: center; gap: 16px;
+      padding: 20px 24px; background: var(--surface);
+      border-radius: var(--radius); margin-top: 20px;
+      border: 1px solid var(--border);
+    }
+    .pred-icon { font-size: 2.8rem; }
+    .pred-label { font-size: 1.8rem; font-weight: 800; }
+    .pred-label.good { color: var(--good); }
+    .pred-label.bad  { color: var(--bad); }
+    .pred-sub { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
+    .conf-bar-wrap { flex: 1; }
+    .conf-bar-label { font-size: 0.72rem; color: var(--muted); margin-bottom: 6px; }
+    .conf-bar { height: 8px; background: var(--border); border-radius: 99px; overflow: hidden; }
+    .conf-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--accent2), var(--accent)); transition: width .6s ease; }
+
+    /* ── loader ── */
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      display: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading .spinner { display: block; }
+    .loading .btn-label { display: none; }
+
+    /* ── info panel pills ── */
+    .info-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
+    .info-pill {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 14px 16px;
+    }
+    .info-pill .pill-label { font-size: 0.7rem; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+    .info-pill .pill-val { font-size: 1.15rem; font-weight: 700; font-family: 'DM Mono', monospace; color: var(--accent); }
+
+    /* ── method badge ── */
+    .method { display: inline-block; padding: 2px 8px; border-radius: 5px; font-size: 0.7rem; font-weight: 700; margin-right: 6px; }
+    .POST { background: #1a1f3a; color: #82b1ff; }
+    .GET  { background: #0f2d1f; color: #69f0ae; }
+
+    /* scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🍷</div>
+  <div>
+    <h1>Wine Quality API</h1>
+    <span>Tester de predicción de calidad – Minería de Datos</span>
+  </div>
+  <div class="base-url-bar">
+    <label>BASE URL</label>
+    <input id="baseUrl" value="http://127.0.0.1:8000" />
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('train')"><span class="method POST">POST</span>/train</button>
+    <button class="tab" onclick="switchTab('predict')"><span class="method POST">POST</span>/predict</button>
+    <button class="tab" onclick="switchTab('info')"><span class="method GET">GET</span>/model/info</button>
+  </div>
+
+  <!-- ═══════════════════ TRAIN ═══════════════════ -->
+  <div class="panel active" id="panel-train">
+
+    <div class="card">
+      <div class="card-title">⚙️ Parámetros del Modelo</div>
+      <div class="grid-3">
+        <div class="field">
+          <label>Modelo</label>
+          <select id="t-model" onchange="onModelChange()">
+            <option value="random_forest">Random Forest</option>
+            <option value="decision_tree">Decision Tree</option>
+            <option value="knn">KNN</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Test size (0.1 – 0.5)</label>
+          <input id="t-testsize" type="number" value="0.2" step="0.05" min="0.1" max="0.5"/>
+        </div>
+        <div class="field">
+          <label>Sample size (0.1 – 1.0)</label>
+          <input id="t-samplesize" type="number" value="1.0" step="0.1" min="0.1" max="1.0"/>
+        </div>
+
+        <!-- RF -->
+        <div class="field" id="f-n_estimators">
+          <label>n_estimators (RF)</label>
+          <input id="t-n_estimators" type="number" value="100" min="10" max="500"/>
+        </div>
+        <!-- RF + Tree -->
+        <div class="field" id="f-max_depth">
+          <label>max_depth (vacío = sin límite)</label>
+          <input id="t-max_depth" type="number" placeholder="null" min="1" max="50"/>
+        </div>
+        <!-- KNN -->
+        <div class="field" id="f-n_neighbors" style="display:none">
+          <label>n_neighbors (KNN)</label>
+          <input id="t-n_neighbors" type="number" value="5" min="1" max="50"/>
+        </div>
+
+        <div class="field">
+          <label>StandardScaler</label>
+          <select id="t-scale">
+            <option value="true">Sí – aplicar escalado</option>
+            <option value="false">No</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📊 Features a usar</div>
+      <div class="features-grid" id="feat-grid"></div>
+      <div style="margin-top:12px; display:flex; gap:10px;">
+        <button class="btn btn-secondary" onclick="selectAll(true)">Seleccionar todas</button>
+        <button class="btn btn-secondary" onclick="selectAll(false)">Limpiar</button>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btn-train" onclick="doTrain()">
+        <div class="spinner"></div>
+        <span class="btn-label">🚀 Entrenar Modelo</span>
+      </button>
+    </div>
+
+    <div class="response-area" id="train-response" style="display:none">
+      <div class="response-header">
+        Respuesta <span class="status-badge status-idle" id="train-status">—</span>
+      </div>
+      <div class="response-body" id="train-body"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ PREDICT ═══════════════════ -->
+  <div class="panel" id="panel-predict">
+
+    <div class="card">
+      <div class="card-title">🍷 Características del Vino</div>
+      <div class="grid-3">
+        <div class="field"><label>fixed acidity</label><input id="p-fixed_acidity" type="number" step="0.1" placeholder="ej: 7.4"/></div>
+        <div class="field"><label>volatile acidity</label><input id="p-volatile_acidity" type="number" step="0.01" placeholder="ej: 0.70"/></div>
+        <div class="field"><label>citric acid</label><input id="p-citric_acid" type="number" step="0.01" placeholder="ej: 0.0"/></div>
+        <div class="field"><label>residual sugar</label><input id="p-residual_sugar" type="number" step="0.1" placeholder="ej: 1.9"/></div>
+        <div class="field"><label>chlorides</label><input id="p-chlorides" type="number" step="0.001" placeholder="ej: 0.076"/></div>
+        <div class="field"><label>free sulfur dioxide</label><input id="p-free_sulfur_dioxide" type="number" step="1" placeholder="ej: 11"/></div>
+        <div class="field"><label>total sulfur dioxide</label><input id="p-total_sulfur_dioxide" type="number" step="1" placeholder="ej: 34"/></div>
+        <div class="field"><label>density</label><input id="p-density" type="number" step="0.0001" placeholder="ej: 0.9978"/></div>
+        <div class="field"><label>pH</label><input id="p-pH" type="number" step="0.01" placeholder="ej: 3.51"/></div>
+        <div class="field"><label>sulphates</label><input id="p-sulphates" type="number" step="0.01" placeholder="ej: 0.56"/></div>
+        <div class="field"><label>alcohol</label><input id="p-alcohol" type="number" step="0.1" placeholder="ej: 9.4"/></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="fillExample()">📋 Cargar ejemplo</button>
+        <button class="btn btn-primary" id="btn-predict" onclick="doPredict()">
+          <div class="spinner"></div>
+          <span class="btn-label">🔍 Predecir Calidad</span>
+        </button>
+      </div>
+    </div>
+
+    <div id="pred-highlight" style="display:none">
+      <div class="pred-result">
+        <div class="pred-icon" id="pred-icon"></div>
+        <div>
+          <div class="pred-label" id="pred-label"></div>
+          <div class="pred-sub" id="pred-sub"></div>
+        </div>
+        <div class="conf-bar-wrap">
+          <div class="conf-bar-label" id="conf-label"></div>
+          <div class="conf-bar"><div class="conf-fill" id="conf-fill" style="width:0%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="response-area" id="predict-response" style="display:none">
+      <div class="response-header">
+        Respuesta <span class="status-badge status-idle" id="predict-status">—</span>
+      </div>
+      <div class="response-body" id="predict-body"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ INFO ═══════════════════ -->
+  <div class="panel" id="panel-info">
+    <div class="card">
+      <div class="card-title">ℹ️ Estado del Modelo Entrenado</div>
+      <p style="font-size:0.85rem; color:var(--muted); margin-bottom:20px;">Consulta la información del último modelo entrenado.</p>
+      <button class="btn btn-primary" id="btn-info" onclick="doInfo()">
+        <div class="spinner"></div>
+        <span class="btn-label">📡 Consultar /model/info</span>
+      </button>
+    </div>
+
+    <div id="info-pills" style="display:none" class="card">
+      <div class="card-title">📈 Métricas del Modelo</div>
+      <div class="info-grid" id="info-grid-content"></div>
+    </div>
+
+    <div class="response-area" id="info-response" style="display:none">
+      <div class="response-header">
+        Respuesta <span class="status-badge status-idle" id="info-status">—</span>
+      </div>
+      <div class="response-body" id="info-body"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const FEATURES = [
+  "fixed acidity","volatile acidity","citric acid","residual sugar",
+  "chlorides","free sulfur dioxide","total sulfur dioxide",
+  "density","pH","sulphates","alcohol"
+];
+
+// ── build feature checkboxes ──
+const grid = document.getElementById('feat-grid');
+FEATURES.forEach(f => {
+  const label = document.createElement('label');
+  label.className = 'feat-check checked';
+  label.innerHTML = `<input type="checkbox" checked value="${f}" onchange="syncCheck(this)"> ${f}`;
+  grid.appendChild(label);
+});
+
+function syncCheck(el) {
+  el.parentElement.classList.toggle('checked', el.checked);
+}
+function selectAll(v) {
+  document.querySelectorAll('#feat-grid input').forEach(cb => {
+    cb.checked = v;
+    cb.parentElement.classList.toggle('checked', v);
+  });
+}
+
+function onModelChange() {
+  const m = document.getElementById('t-model').value;
+  document.getElementById('f-n_estimators').style.display = m === 'random_forest' ? '' : 'none';
+  document.getElementById('f-max_depth').style.display    = (m === 'random_forest' || m === 'decision_tree') ? '' : 'none';
+  document.getElementById('f-n_neighbors').style.display = m === 'knn' ? '' : 'none';
+}
+
+function switchTab(id) {
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  const idx = ['train','predict','info'].indexOf(id);
+  document.querySelectorAll('.tab')[idx].classList.add('active');
+  document.getElementById('panel-'+id).classList.add('active');
+}
+
+function getBase() { return document.getElementById('baseUrl').value.replace(/\/$/, ''); }
+
+function setLoading(btnId, v) {
+  const btn = document.getElementById(btnId);
+  btn.classList.toggle('loading', v);
+  btn.disabled = v;
+}
+
+function showResponse(prefix, status, data, isError) {
+  const area = document.getElementById(prefix+'-response');
+  const badge = document.getElementById(prefix+'-status');
+  const body  = document.getElementById(prefix+'-body');
+  area.style.display = '';
+  badge.textContent = status;
+  badge.className = 'status-badge ' + (isError ? 'status-err' : 'status-ok');
+  body.textContent = JSON.stringify(data, null, 2);
+  body.className = 'response-body' + (isError ? ' error' : '');
+}
+
+// ── TRAIN ──
+async function doTrain() {
+  const features = [...document.querySelectorAll('#feat-grid input:checked')].map(c => c.value);
+  if (!features.length) return alert('Selecciona al menos una feature.');
+  const body = {
+    model_name: document.getElementById('t-model').value,
+    features,
+    test_size: parseFloat(document.getElementById('t-testsize').value),
+    scale: document.getElementById('t-scale').value === 'true',
+    sample_size: parseFloat(document.getElementById('t-samplesize').value),
+    n_estimators: parseInt(document.getElementById('t-n_estimators').value) || 100,
+    n_neighbors: parseInt(document.getElementById('t-n_neighbors').value) || 5,
+  };
+  const md = document.getElementById('t-max_depth').value;
+  body.max_depth = md ? parseInt(md) : null;
+
+  setLoading('btn-train', true);
+  try {
+    const r = await fetch(getBase()+'/train', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    const d = await r.json();
+    showResponse('train', r.status, d, !r.ok);
+  } catch(e) {
+    showResponse('train', 'Error', { error: 'No se pudo conectar con la API. ¿Está corriendo?', detail: e.message }, true);
+  }
+  setLoading('btn-train', false);
+}
+
+// ── PREDICT ──
+const EXAMPLE = { fixed_acidity:7.4, volatile_acidity:0.70, citric_acid:0.0, residual_sugar:1.9, chlorides:0.076, free_sulfur_dioxide:11, total_sulfur_dioxide:34, density:0.9978, pH:3.51, sulphates:0.56, alcohol:9.4 };
+
+function fillExample() {
+  Object.entries(EXAMPLE).forEach(([k,v]) => {
+    const el = document.getElementById('p-'+k);
+    if (el) el.value = v;
+  });
+}
+
+async function doPredict() {
+  const fields = ['fixed_acidity','volatile_acidity','citric_acid','residual_sugar','chlorides',
+                  'free_sulfur_dioxide','total_sulfur_dioxide','density','pH','sulphates','alcohol'];
+  const body = {};
+  fields.forEach(f => {
+    const v = document.getElementById('p-'+f).value;
+    if (v !== '') body[f] = parseFloat(v);
+  });
+
+  setLoading('btn-predict', true);
+  document.getElementById('pred-highlight').style.display = 'none';
+  try {
+    const r = await fetch(getBase()+'/predict', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    const d = await r.json();
+    showResponse('predict', r.status, d, !r.ok);
+    if (r.ok) showPrediction(d);
+  } catch(e) {
+    showResponse('predict', 'Error', { error: 'No se pudo conectar con la API.', detail: e.message }, true);
+  }
+  setLoading('btn-predict', false);
+}
+
+function showPrediction(d) {
+  const isGood = d.prediction === 'bueno';
+  document.getElementById('pred-icon').textContent  = isGood ? '✅' : '❌';
+  const lbl = document.getElementById('pred-label');
+  lbl.textContent = d.prediction.toUpperCase();
+  lbl.className = 'pred-label ' + (isGood ? 'good' : 'bad');
+  document.getElementById('pred-sub').textContent = `Modelo: ${d.model_used}`;
+  if (d.confidence !== null) {
+    const pct = Math.round(d.confidence * 100);
+    document.getElementById('conf-label').textContent = `Confianza: ${pct}%`;
+    setTimeout(() => document.getElementById('conf-fill').style.width = pct+'%', 50);
+  }
+  document.getElementById('pred-highlight').style.display = '';
+}
+
+// ── INFO ──
+async function doInfo() {
+  setLoading('btn-info', true);
+  try {
+    const r = await fetch(getBase()+'/model/info');
+    const d = await r.json();
+    showResponse('info', r.status, d, !r.ok);
+    if (r.ok) showInfoPills(d);
+  } catch(e) {
+    showResponse('info', 'Error', { error: 'No se pudo conectar con la API.', detail: e.message }, true);
+  }
+  setLoading('btn-info', false);
+}
+
+function showInfoPills(d) {
+  const pills = [
+    { label: 'Modelo', val: d.model },
+    { label: 'Precisión', val: d.precision },
+    { label: 'Accuracy', val: d.accuracy },
+    { label: 'Features usadas', val: d.total_features },
+  ];
+  document.getElementById('info-grid-content').innerHTML = pills.map(p =>
+    `<div class="info-pill"><div class="pill-label">${p.label}</div><div class="pill-val">${p.val}</div></div>`
+  ).join('');
+  document.getElementById('info-pills').style.display = '';
+}
+</script>
+</body>
+</html>
